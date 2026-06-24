@@ -1,19 +1,44 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import os
 
-# Load model and features
-model = joblib.load(r"E:\Customer_Churn_Prediction\models\customer_churn_model.pkl")
-features = joblib.load(r"E:\Customer_Churn_Prediction\models\feature_columns.pkl")
+# -----------------------------
+# Load Model and Feature Columns
+# -----------------------------
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-st.set_page_config(page_title="Customer Churn Prediction")
+model = joblib.load(
+    os.path.join(BASE_DIR, "models", "customer_churn_model.pkl")
+)
+
+features = joblib.load(
+    os.path.join(BASE_DIR, "models", "feature_columns.pkl")
+)
+
+# -----------------------------
+# Streamlit App
+# -----------------------------
+st.set_page_config(
+    page_title="Customer Churn Prediction",
+    page_icon="📊",
+    layout="centered"
+)
 
 st.title("📊 Customer Churn Prediction System")
+st.write("Predict whether a telecom customer is likely to churn.")
 
+# -----------------------------
 # User Inputs
+# -----------------------------
 senior = st.selectbox("Senior Citizen", [0, 1])
 
-tenure = st.slider("Tenure (Months)", 0, 72, 12)
+tenure = st.slider(
+    "Tenure (Months)",
+    min_value=0,
+    max_value=72,
+    value=12
+)
 
 monthly_charges = st.number_input(
     "Monthly Charges",
@@ -29,12 +54,24 @@ total_charges = st.number_input(
     value=500.0
 )
 
-gender = st.selectbox("Gender", ["Female", "Male"])
+gender = st.selectbox(
+    "Gender",
+    ["Female", "Male"]
+)
 
-partner = st.selectbox("Partner", ["No", "Yes"])
+partner = st.selectbox(
+    "Partner",
+    ["No", "Yes"]
+)
 
-dependents = st.selectbox("Dependents", ["No", "Yes"])
+dependents = st.selectbox(
+    "Dependents",
+    ["No", "Yes"]
+)
 
+# -----------------------------
+# Prediction
+# -----------------------------
 if st.button("Predict Churn"):
 
     data = dict.fromkeys(features, 0)
@@ -58,11 +95,16 @@ if st.button("Predict Churn"):
     prediction = model.predict(input_df)[0]
     probability = model.predict_proba(input_df)[0][1]
 
+    st.subheader("Prediction Result")
+
     if prediction == 1:
         st.error(
-            f"⚠ Customer likely to churn\n\nProbability: {probability:.2%}"
+            f"⚠️ Customer likely to churn\n\nProbability: {probability:.2%}"
         )
     else:
         st.success(
             f"✅ Customer likely to stay\n\nProbability of churn: {probability:.2%}"
         )
+
+    st.write("---")
+    st.write(f"**Churn Probability:** {probability:.2%}")
